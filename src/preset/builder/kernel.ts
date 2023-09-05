@@ -79,13 +79,19 @@ export class Kernel extends UserOperationBuilder {
     ]);
   };
 
+  private enableMode: UserOperationMiddlewareFn = async (ctx) => {
+    ctx.op.signature = ethers.utils.hexConcat([
+      KernelConst.Modes.Enable,
+      ctx.op.signature,
+    ]);
+  };
+
   public static async init(
     signer: ethers.Signer,
     rpcUrl: string,
     opts?: IPresetBuilderOpts
   ): Promise<Kernel> {
     const instance = new Kernel(signer, rpcUrl, opts);
-
     try {
       instance.initCode = ethers.utils.hexConcat([
         instance.factory.address,
@@ -110,11 +116,11 @@ export class Kernel extends UserOperationBuilder {
 
       const chain = await instance.provider.getNetwork().then((n) => n.chainId);
       const ms = Safe.MultiSend[chain.toString()];
-      if (!ms)
-        throw new Error(
-          `Multisend contract not deployed on network: ${chain.toString()}`
-        );
-      instance.multisend = Multisend__factory.connect(ms, instance.provider);
+      // if (!ms)
+      //   throw new Error(
+      //     `Multisend contract not deployed on network: ${chain.toString()}`
+      //   );
+      // instance.multisend = Multisend__factory.connect(ms, instance.provider);
       instance.proxy = Kernel__factory.connect(addr, instance.provider);
     }
 

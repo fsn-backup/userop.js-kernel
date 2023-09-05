@@ -37,6 +37,9 @@
     "typescript": "^5.1.3"
   },
   "dependencies": {
-    "ethers": "^5.7.2"
+    "@alchemy/aa-core": "^0.1.0-alpha.29",
+    "ethers": "^5.7.2",
+    "merkletreejs": "^0.3.10",
+    "viem": "^1.10.0"
   }
 }

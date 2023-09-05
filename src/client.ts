@@ -63,6 +63,9 @@ export class Client implements IClient {
           OpToJSON(op),
           this.entryPoint.address,
         ])) as string);
+
+    console.log("userOpHash", userOpHash);
+
     builder.resetOp();
 
     return {
