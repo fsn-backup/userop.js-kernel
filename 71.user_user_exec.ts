@@ -142,11 +142,11 @@ async function main() {
   const entryPoint = "0xba0917DF35Cf6c7aE1CABf5e7bED9a904F725318";
   const paymaster = "0x1a256A0221b030A8A50Cb18966Ebdc4325a92D7F"
 
-  const kernelFactory = "0x7EC94Ac7cb88967D5b56A90fcB88999BaD62A717";
-  const kernelImpl = "0x8079A0A8b9aB9aAE7C99C47892f596aB25ddF632";
-  const ECDSAValidator = "0xF10688BC56BD63C1c9A457c87b756C6AB2237975";
-  const SessionKeyExecValidator = "0xd03ADB34D8388da06886F18626C5bB12a94aF06C";
-  const SessionKeyOwnedValidator = "0xBb04C8477A4Bb093Ba49E7307487E66b7fC92856";
+  const kernelFactory = "0x79Ae4266c9Db744b5704B5F8e1dCbc343625306D";
+  const kernelImpl = "0xBA5a2998ecFe8Ff76A0b0214519D0BCfFeDF1A9D";
+  const ECDSAValidator = "0xFDe1A6800Ea656Cd3f993cE7383670EFa52F1118";
+  const SessionKeyExecValidator = "0x8cB7f06C5AE2C50F31a4b5D6B8eD89a5f4242662";
+  const SessionKeyOwnedValidator = "0x4298639DecA257e379d84b8261D8dca9AE593672";
 
 
   const nftAddress = "0xf578642ff303398103930832B779cD35891eBa35"
@@ -243,7 +243,9 @@ async function main() {
     data: "0x",
   };
 
-  const sig = getFunctionSelector("mint(address)")
+  // const sig = getFunctionSelector("mint(address)")
+  const sig = "0x00000000";
+
   const permissions: Permission[] = [
     {
       target: userAA1Addr as Hex,
@@ -1731,7 +1733,7 @@ async function main() {
       concatHex([
         pad(toHex(validUntil), { size: 6 }),
         pad(toHex(validAfter), { size: 6 }),
-        SessionKeyOwnedValidator,
+        SessionKeyExecValidator,
       ]),
       { size: 32 }
     ),
@@ -1741,59 +1743,14 @@ async function main() {
   let enableSignature = await userWallet._signTypedData(domain, types, message);
   console.log("enableSignature", enableSignature)
 
-  // const messageHash = "0xea390646b28501008ee9b4c570c89b83d39749b731d196de116f5fc327503be2"
-  // const recoveredAddress = ethers.utils.recoverAddress(messageHash, enableSignature);
-  // console.log(recoveredAddress, recoveredAddress == userAddress)
-
-
-  // const VALIDATOR_APPROVED_STRUCT_HASH = "0x3ce406685c1b3551d706d85a68afdaa49ac4e07b451ad9b8ff8b58c3ee964176";
-  // const enableSigHex = callData.slice(2, 2+8); 
-  // const enableSig = Buffer.from(enableSigHex, 'hex');
-  // let signatureSlice1 = hexToBigInt(
-  //   concatHex([
-  //     pad(toHex(validUntil), { size: 6 }),
-  //     pad(toHex(validAfter), { size: 6 }),
-  //     SessionKeyOwnedValidator as Address,
-  //   ]),
-  //   { size: 32 }
-  // )
-  // console.log( concatHex([
-  //   pad(toHex(validUntil), { size: 6 }),
-  //   pad(toHex(validAfter), { size: 6 }),
-  //   SessionKeyOwnedValidator,
-  // ]),
-  // { size: 32 })
-  // const signatureSlice2 = sessionKeyExecutor as Address;
-  // // const enableData = enableData;  
-
-  // const keccakOfEnableData = ethers.utils.keccak256(enableData);
-
-  // const abiCoder = new ethers.utils.AbiCoder();
-  // const encoded = abiCoder.encode(
-  //   ["bytes32", "bytes4", "uint256", "address", "bytes32"],
-  //   [VALIDATOR_APPROVED_STRUCT_HASH, enableSig, ethers.BigNumber.from(signatureSlice1), ethers.utils.getAddress(signatureSlice2), keccakOfEnableData]
-  // );
-  // const enableDigest = ethers.utils.keccak256(encoded);
-  // console.log("enableDigest", enableDigest)
-  // console.log("sig", enableSig)
-  // console.log("sig2,",signatureSlice1)
-  // console.log("sig3,",signatureSlice2)
-  // console.log("sig4,",keccakOfEnableData)
-
-  // const enableDigest = "0xea390646b28501008ee9b4c570c89b83d39749b731d196de116f5fc327503be2"
-  // const messageBytes = ethers.utils.toUtf8Bytes(enableDigest);
-  // let enableSignature = await userWallet.signMessage(messageBytes);
-  // console.log("enableSignature", enableSignature)
-  // const recoveredAddress2 = ethers.utils.recoverAddress(messageHash, enableSignature);
-
+  
   const enableSigLength = enableSignature.length / 2 - 1;
 
   let signature = concatHex([
     validatorMode,
-    // pad(toHex(2), { size: 4 }),
     pad(toHex(validUntil), { size: 6 }), // 6 bytes 4 - 10
     pad(toHex(validAfter), { size: 6 }), // 6 bytes 10 - 16
-    pad(SessionKeyOwnedValidator, { size: 20 }), // 20 bytes 16 - 36
+    pad(SessionKeyExecValidator, { size: 20 }), // 20 bytes 16 - 36
     pad(sessionKeyExecutor as Hex, { size: 20 }), // 20 bytes 36 - 56
     pad(toHex(enableDataLength), { size: 32 }),
     enableData,

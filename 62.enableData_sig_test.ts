@@ -71,23 +71,39 @@ async function main() {
   const sessionKeyPrive = "b37db4b8b4a195056c40d92df7a8ae757022925059bdaa065fcf83bf0bb1c639"
   const sessionKeyExecutor = "0xB5B2D6ab4aF3FB1C008d1933F8D0e3049e2d78Be"
 
-  const sessionKeyAddr2 = "0x0459e4fa68BBDFb22CaB8eA0244C717e3cF18106"
+  const sessionKeyAddr2 = "0xa10F17c5dB9C2eD693bCa462D9A1590f95DF0e22"
   const sessionKeyPrive2 = "c262029d2024df67ff107b1c5ffce38f8883d0f4b2933352ef9fecca759c1321"
 
 
   const provider = new BundlerJsonRpcProvider(nodeRpcUrl).setBundlerRpc(bundlerUrl);
   const userWallet = new ethers.Wallet(userPrivateKey, provider);
 
-  console.log("origin address:", userWallet.address);
-  const message = "0xea390646b28501008ee9b4c570c89b83d39749b731d196de116f5fc327503be2";
-  const messageBytes = ethers.utils.toUtf8Bytes(message);
-  const sessionKeySigData = await userWallet.signMessage(messageBytes);
-  console.log("sessionKeySigData:", sessionKeySigData);
+  // console.log("origin address:", userWallet.address);
+  // const message = "0xea390646b28501008ee9b4c570c89b83d39749b731d196de116f5fc327503be2";
+  // const messageBytes = ethers.utils.arrayify(message);
+  // const sessionKeySigData = await userWallet.signMessage(messageBytes);
+  // console.log("sessionKeySigData:", sessionKeySigData);
+  // const messageHash = ethers.utils.hashMessage(messageBytes);
+  // console.log("Message Hash:", messageHash);
+  // const recoveredAddress = ethers.utils.recoverAddress(messageHash, sessionKeySigData);
+  // console.log("Recovered address:", recoveredAddress);
+  // console.log("recover success:", recoveredAddress == userWallet.address);
+
+  const hash = "0x2549d5b08a7e657db066ff8d2b2a724cc261d7551d8772e66928875a7a1c805b"
+  const sessionKeySigData = "0xec6cdb8f45544ab26d656b178ea452e967a883c4680cc734ab9891e1e92636b5356834453f3467de0140e8447d2fcbc7b8e4dacf26d2637a4ff6a0a4a4e308071b"
+
+  const messageBytes = ethers.utils.toUtf8Bytes(hash);
+  // console.log(messageBytes)
   const messageHash = ethers.utils.hashMessage(messageBytes);
-  console.log("Message Hash:", messageHash);
-  const recoveredAddress = ethers.utils.recoverAddress(messageHash, sessionKeySigData);
-  console.log("Recovered address:", recoveredAddress);
-  console.log("recover success:", recoveredAddress == userWallet.address);
+  console.log(messageHash)
+  const recoveredAddress2 = ethers.utils.recoverAddress(messageHash, sessionKeySigData);
+  console.log("recover addr=", recoveredAddress2, recoveredAddress2 == sessionKeyAddr)
+
+
+  console.log(hash == "0x2549d5b08a7e657db066ff8d2b2a724cc261d7551d8772e66928875a7a1c805b")
+  console.log(sessionKeySigData == "0xec6cdb8f45544ab26d656b178ea452e967a883c4680cc734ab9891e1e92636b5356834453f3467de0140e8447d2fcbc7b8e4dacf26d2637a4ff6a0a4a4e308071b")
+
+
 }
 
 main()
