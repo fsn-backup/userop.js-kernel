@@ -5,11 +5,13 @@ export class UserOperationMiddlewareCtx implements IUserOperationMiddlewareCtx {
   public op: IUserOperation;
   readonly entryPoint: string;
   readonly chainId: BigNumberish;
+  public first: boolean;
 
   constructor(op: IUserOperation, entryPoint: string, chainId: BigNumberish) {
     this.op = { ...op };
     this.entryPoint = ethers.utils.getAddress(entryPoint);
     this.chainId = ethers.BigNumber.from(chainId);
+    this.first = true;
   }
 
   getUserOpHash() {

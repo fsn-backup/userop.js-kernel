@@ -72,6 +72,7 @@ export interface IUserOperationMiddlewareCtx {
   op: IUserOperation;
   entryPoint: string;
   chainId: BigNumberish;
+  first: boolean;
 
   // A userOpHash is a unique hash of op + entryPoint + chainId.
   getUserOpHash: () => string;
@@ -109,6 +110,8 @@ export interface IPresetBuilderOpts {
   salt?: BigNumberish;
   paymasterMiddleware?: UserOperationMiddlewareFn;
   overrideBundlerRpc?: string;
+  kernelImpl?: string;
+  ECDSAValidator?: string;
 }
 
 export interface ICall {

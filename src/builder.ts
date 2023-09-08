@@ -149,6 +149,7 @@ export class UserOperationBuilder implements IUserOperationBuilder {
   }
   setVerificationGasLimit(val: BigNumberish) {
     this.currOp.verificationGasLimit = ethers.BigNumber.from(val);
+    console.log("===667===",this.currOp.verificationGasLimit.toString())
     return this;
   }
   setPreVerificationGas(val: BigNumberish) {
@@ -207,8 +208,8 @@ export class UserOperationBuilder implements IUserOperationBuilder {
     for (const fn of this.middlewareStack) {
       await fn(ctx);
     }
+    
     this.setPartial(ctx.op);
-
     return OpToJSON(this.currOp);
   }
 

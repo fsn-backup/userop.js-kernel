@@ -34,6 +34,8 @@ export class Kernel extends UserOperationBuilder {
   private provider: ethers.providers.JsonRpcProvider;
   private entryPoint: EntryPoint;
   private factory: KernelFactory;
+  private kernelImpl: KernelImpl;
+  private ECDSAValidator: string;
   private initCode: string;
   private multisend: Multisend;
   proxy: KernelImpl;
@@ -53,9 +55,14 @@ export class Kernel extends UserOperationBuilder {
       this.provider
     );
     this.factory = KernelFactory__factory.connect(
-      opts?.factory || KernelConst.Factory,
+      opts?.factory || "0x",
       this.provider
     );
+    this.kernelImpl = Kernel__factory.connect(
+      opts?.kernelImpl || "0x",
+      this.provider
+    );
+    this.ECDSAValidator = opts?.ECDSAValidator || "0x";
     this.initCode = "0x";
     this.multisend = Multisend__factory.connect(
       ethers.constants.AddressZero,
@@ -96,11 +103,13 @@ export class Kernel extends UserOperationBuilder {
       instance.initCode = ethers.utils.hexConcat([
         instance.factory.address,
         instance.factory.interface.encodeFunctionData("createAccount", [
-          KernelConst.KernelImpl,
+          // KernelConst.KernelImpl,
+          instance.kernelImpl.address,
           instance.proxy.interface.encodeFunctionData(
             "initialize",
             [
-              KernelConst.ECDSAValidator,
+              // KernelConst.ECDSAValidator,
+              instance.ECDSAValidator,
               await instance.signer.getAddress(),
             ]
           ),
@@ -123,7 +132,13 @@ export class Kernel extends UserOperationBuilder {
       // instance.multisend = Multisend__factory.connect(ms, instance.provider);
       instance.proxy = Kernel__factory.connect(addr, instance.provider);
     }
-
+    // const modeGas = async (ctx:any) => {
+    //   ctx.op.maxFeePerGas = ctx.op.maxFeePerGas*100;
+    //   ctx.op.callGasLimit = ctx.op.callGasLimit*100;
+    //   ctx.op.verificationGasLimit = ctx.op.verificationGasLimit*100;
+    //   ctx.op.preVerificationGas = ctx.op.preVerificationGas*100;
+    //   ctx.op.maxPriorityFeePerGas = ctx.op.maxPriorityFeePerGas*100;
+    // };
     const base = instance
       .useDefaults({
         sender: instance.proxy.address,
@@ -142,8 +157,9 @@ export class Kernel extends UserOperationBuilder {
       : base.useMiddleware(estimateUserOperationGas(instance.provider));
 
     return withPM
-      .useMiddleware(EOASignature(instance.signer))
-      .useMiddleware(instance.sudoMode);
+      // .useMiddleware(EOASignature(instance.signer))
+      // .useMiddleware(instance.sudoMode)
+      // .useMiddleware(modeGas)
   }
 
   execute(call: ICall) {
