@@ -43,95 +43,13 @@ import {
 } from "@alchemy/aa-core";
 import { kernelABI } from "./abi.kernel";
 import { nftABI } from "./abi.nft";
+import { paymasterABI } from "./abi.paymaster";
 import { UserOperationMiddlewareCtx } from "./src/context"
-
-enum ParamCondition {
-  EQUAL = 0,
-  GREATER_THAN = 1,
-  LESS_THAN = 2,
-  GREATER_THAN_OR_EQUAL = 3,
-  LESS_THAN_OR_EQUAL = 4,
-  NOT_EQUAL = 5,
-}
-interface ParamRules {
-  offset: number;
-  condition: ParamCondition;
-  param: Hex;
-}
-enum Operation {
-  Call = 0,
-  DelegateCall = 1,
-}
-interface Permission {
-  target: Address;
-  valueLimit: number;
-  sig: Hex;
-  rules: ParamRules[];
-  operation: Operation;
-}
-
-function encodePermissionData(permission: Permission, merkleProof?: string[]): Hex {
-  const permissionParam = {
-    components: [
-      {
-        name: "target",
-        type: "address",
-      },
-      {
-        name: "valueLimit",
-        type: "uint256",
-      },
-      {
-        name: "sig",
-        type: "bytes4",
-      },
-      {
-        components: [
-          {
-            name: "offset",
-            type: "uint256",
-          },
-          {
-            internalType: "enum ParamCondition",
-            name: "condition",
-            type: "uint8",
-          },
-          {
-            name: "param",
-            type: "bytes32",
-          },
-        ],
-        name: "rules",
-        type: "tuple[]",
-      },
-      {
-        internalType: "enum Operation",
-        name: "operation",
-        type: "uint8",
-      },
-    ],
-    name: "permission",
-    type: "tuple",
-  };
-  let params;
-  let values;
-  if (merkleProof) {
-    params = [
-      permissionParam,
-      {
-        name: "merkleProof",
-        type: "bytes32[]",
-      },
-    ];
-    values = [permission, merkleProof];
-  } else {
-    params = [permissionParam];
-    values = [permission];
-  }
-  return encodeAbiParameters(params, values);
-}
+import {ParamCondition, ParamRules, Operation, Permission, encodePermissionData } from "./src/kernel_util"
 
 async function main() {
+
+  const chainId = 6480001000;
 
   let nodeRpcUrl = "http://88.99.94.109:3334"
   let bundlerUrl = "http://88.99.94.109:14337/"
@@ -140,7 +58,9 @@ async function main() {
   // let bundlerUrl = "http://127.0.0.1:14337"
 
   const entryPoint = "0xba0917DF35Cf6c7aE1CABf5e7bED9a904F725318";
-  const paymaster = "0x1a256A0221b030A8A50Cb18966Ebdc4325a92D7F"
+  // const paymaster = "0x1a256A0221b030A8A50Cb18966Ebdc4325a92D7F"
+  const paymaster = "0x45d330503532C9665f650Cf7B19389BdfDF123fF"   // need sign
+  
 
   const kernelFactory = "0xA171f41588bA43666F4ee9F1f87C1D84f573d848";
   const kernelImpl = "0x3FEf6c193e5632d6fd65Da1bC82d34EDc33Cd251";
@@ -159,9 +79,6 @@ async function main() {
   const userPrivateKey = "4fa0dcbe0e0d89b3e75c0221b517cdc69edbea3c4d88bf01988f3e52a2989b0e"
   const userAA1Addr = "0x1991bC1C252134AcD08BFA05b0A6Df47394D6D85"
 
-  // const sessionKeyAddr = "0x9F8Df84Ff8096C156bE988B29e358d5f6302ea8E"
-  const sessionKeyPrive = "b37db4b8b4a195056c40d92df7a8ae757022925059bdaa065fcf83bf0bb1c639"
-  const sessionKeyExecutor = "0xB5B2D6ab4aF3FB1C008d1933F8D0e3049e2d78Be"
 
   const serverAddr = "0xB5B2D6ab4aF3FB1C008d1933F8D0e3049e2d78Be"
   const serverPriv = "a01153107130534a21e9a4257e5670aed40a2c299f79b881c97e6d1a5a9f38a4"
@@ -174,12 +91,15 @@ async function main() {
 
   const receiveAddr = "0x33275cECEA5165f99e3128FF1899CBACe07C7d6C"
 
-  let sessionKeyPriv = "0x67cd30131c9c79930cbd14a4e1c687358a4a0d1f0d49096192498a394ea46972"
   let sessionKeyAddr = "0xa10F17c5dB9C2eD693bCa462D9A1590f95DF0e22"
-  // let sessionKeySigData = "0x11972eb4b60d4be19d7e2dd817199a51c15a5eb8aa7d90e54caedbdccaf9465a366808418c18ff0b174e28233ac6299a9a444124364289ca4a2344eb76e53d8a1b"
+  let sessionKeyPriv = "0x67cd30131c9c79930cbd14a4e1c687358a4a0d1f0d49096192498a394ea46972"
+  const sessionKeyExecutor = "0xB5B2D6ab4aF3FB1C008d1933F8D0e3049e2d78Be"
 
   let pageUserAddr = ""
   let pageUserPriv = "0x59c098d76886a06eaca4ccf5109021134bf94d24a458d1948431aa34be1b01e2"
+
+  let paymasterSigner = "0x27E07d818f60B6dFDcf6F0E5b4AF7735467B13C5"
+  let paymasterSignerPriv = "83ee04ec28cf6941d0a4161a6080074e5c9c056d48609c778f7a34df0decc247"
 
 
   console.log("Starting client...")
@@ -195,6 +115,7 @@ async function main() {
   const deployWallet = new ethers.Wallet(userPrivateKey, provider);
   const pageUserWallet = new ethers.Wallet(pageUserPriv, provider);
   const sessionKeyWallet = new ethers.Wallet(sessionKeyPriv, provider);
+  const paymasterSignerWallet = new ethers.Wallet(paymasterSignerPriv, provider);
 
   console.log("Kernel initializing...");
   const kernel = await Presets.Builder.Kernel.init(
@@ -222,7 +143,6 @@ async function main() {
 
   // const sig = getFunctionSelector("mint(address)")
   const sig = "0x00000000";
-
   const permissions: Permission[] = [
     {
       target: userAA1Addr as Hex,
@@ -239,25 +159,13 @@ async function main() {
     },
   ];
 
-  // const validAfter = 1;
-  // const validUntil = 1823012745;
-
-  // const SvalidAfter = 1;
-  // const SvalidUntil = 1623012745;
-  
-  // const validAfter = 1594068745;
-  // const validUntil = 1;
-
-  // const SvalidAfter = 1594068745;
-  // const SvalidUntil = 1;
-
+  // act: validUntil - SvalidUntil
   const validAfter = 1594068745;
   const validUntil = 1623012745;
 
   const SvalidAfter = 1594068745;
   const SvalidUntil = 1923012745;
 
-  // act: validUntil - SvalidUntil
 
   const sessionKeyData = {
     validAfter: SvalidAfter,
@@ -293,7 +201,7 @@ async function main() {
     pad(toHex(sessionKeyData.validUntil), { size: 6 }),
     paymaster,
   ])
-  console.log("enableData:", enableData)
+  // console.log("enableData:", enableData)
   const enableDataLength = enableData.length / 2 - 1;
 
   const encodedPermissionData =
@@ -314,12 +222,22 @@ async function main() {
       ? encodePermissionData(permissions[0], merkleProof)
       : "0x";
 
+  console.log("create builder...")
   let builder = kernel.execute(call)
     .setPaymasterAndData(paymaster)
   const userOp = await client.buildUserOperation(builder);
 
+  // --- get paymaster signature ---
+  // const paymasterContract = new ethers.Contract(paymaster, paymasterABI, paymasterSignerWallet);
+  // const paymasterHash = await paymasterContract.getHash(userOp, SvalidUntil, validUntil)
+  // console.log("paymasterHash:", paymasterHash)
+  // const paymasterSignature = await paymasterSignerWallet.signMessage(ethers.utils.arrayify(paymasterHash));
+  // console.log("paymasterSignature:", paymasterSignature)
 
-  console.log("======")
+  return 
+
+  // --- get paymaster signature end---
+
 
   const hash = getUserOperationHash(
     {
@@ -336,35 +254,19 @@ async function main() {
       signature: userOp.signature as Hex,
     },
     entryPoint,
-    BigInt(6480001000)
+    BigInt(chainId)
   );
-  console.log("userop:", userOp)
-  console.log("user op hash", hash)
-
-  let hash2 = new UserOperationMiddlewareCtx(
-    userOp,
-    entryPoint,
-    6480001000
-  ).getUserOpHash()
-  console.log("hash2==hash:", hash2 == hash)
 
   const messageBytes = ethers.utils.arrayify(hash);
-  let sessionKeySigData = await sessionKeyWallet.signMessage(messageBytes);
-  console.log("sessionKeySigData", sessionKeySigData)
-
-  const messageHash = ethers.utils.hashMessage(messageBytes);
-  const recoveredAddress2 = ethers.utils.recoverAddress(messageHash, sessionKeySigData);
-  console.log("recover addr=", recoveredAddress2, recoveredAddress2 == sessionKeyAddr)
+  const sessionKeySigData = await sessionKeyWallet.signMessage(messageBytes);
 
   const sessionKeySig = concatHex([
     sessionKeyAddr as Hex,
     sessionKeySigData as Hex,
     encodedData,
   ]);
-  console.log("sessionKeySig", sessionKeySig)
 
-
-  let callData = kernel.proxy.interface.encodeFunctionData("execute", [
+  const callData = kernel.proxy.interface.encodeFunctionData("execute", [
     call.to,
     call.value,
     call.data,
@@ -374,13 +276,13 @@ async function main() {
   const enableSig = Buffer.from(enableSigHex, 'hex');
 
 
-  let domain = {
+  const domain = {
     name: "Kernel",
     version: "0.2.1",
     chainId: 6480001000,
     verifyingContract: address,
   }
-  let types = {
+  const types = {
     ValidatorApproved: [
       { name: "sig", type: "bytes4" },
       { name: "validatorData", type: "uint256" },
@@ -388,7 +290,7 @@ async function main() {
       { name: "enableData", type: "bytes" },
     ]
   }
-  let message = {
+  const message = {
     sig: enableSig,
     validatorData: hexToBigInt(
       concatHex([
@@ -401,13 +303,11 @@ async function main() {
     executor: sessionKeyExecutor as Address,
     enableData: enableData,
   }
-  let enableSignature = await userWallet._signTypedData(domain, types, message);
-  console.log("enableSignature", enableSignature)
-
-  
+  const enableSignature = await userWallet._signTypedData(domain, types, message);
+  console.log("enableSignature:", enableSignature)
   const enableSigLength = enableSignature.length / 2 - 1;
 
-  let signature = concatHex([
+  const signature = concatHex([
     validatorMode,
     pad(toHex(validUntil), { size: 6 }), // 6 bytes 4 - 10
     pad(toHex(validAfter), { size: 6 }), // 6 bytes 10 - 16
@@ -419,15 +319,9 @@ async function main() {
     enableSignature as Hex,
     sessionKeySig as Hex,
   ]);
-  console.log("signature", signature)
-  // console.log("enable sig length", enableSigLength, "offset", 4 + 6 + 6 + 20 + 20 + 32 + enableDataLength + 32)
-  // console.log("signature length", signature.length/2-1)
-  // console.log("sessionKeySig length", sessionKeySig.length/2-1)
 
 
   builder = builder
-    // .setPreVerificationGas(userOp.preVerificationGas)
-    // .setVerificationGasLimit(userOp.verificationGasLimit)
     .setPaymasterAndData(paymaster)
     .setSignature(signature)
   console.log("Builder initialized")
@@ -441,7 +335,6 @@ async function main() {
     }
   );
   console.log(`UserOpHash: ${res.userOpHash}`);
-  console.log(res.userOpHash == hash)
 
   const receipt = await res.wait();
   console.log(`receipt: ${receipt?.transactionHash}`);

@@ -9,12 +9,12 @@ import {
   Client,
   Presets,
   BundlerJsonRpcProvider
-} from "./userop";
+} from "./src";
 import {
   EOASignature,
   estimateUserOperationGas,
   getGasPrice,
-} from "./userop/preset/middleware";
+} from "./src/preset/middleware";
 import {
   encodeFunctionData,
   toBytes,

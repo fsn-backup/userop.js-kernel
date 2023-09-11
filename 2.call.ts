@@ -9,7 +9,7 @@ import {
   Client,
   Presets,
   BundlerJsonRpcProvider
-} from "./userop";
+} from "./src";
 
 async function main() {
 
