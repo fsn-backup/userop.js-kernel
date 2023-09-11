@@ -54,8 +54,6 @@ export class Client implements IClient {
     const op = await this.buildUserOperation(builder);
     opts?.onBuild?.(op);
 
-    // console.log("===2===", op)
-
     const userOpHash = dryRun
       ? new UserOperationMiddlewareCtx(
           op,
@@ -66,8 +64,6 @@ export class Client implements IClient {
           OpToJSON(op),
           this.entryPoint.address,
         ])) as string);
-
-    console.log("hash4:", userOpHash)
 
     builder.resetOp();
 
@@ -97,54 +93,5 @@ export class Client implements IClient {
       },
     };
   }
-
-  async sendUserOperationOnly(
-    op: IUserOperation,
-    opts?: ISendUserOperationOpts
-  ) {
-    const dryRun = Boolean(opts?.dryRun);
-    // const op = await this.buildUserOperation(builder);
-    opts?.onBuild?.(op);
-
-    // console.log("===2===", op)
-
-    const userOpHash = dryRun
-      ? new UserOperationMiddlewareCtx(
-          op,
-          this.entryPoint.address,
-          this.chainId
-        ).getUserOpHash()
-      : ((await this.provider.send("eth_sendUserOperation", [
-          OpToJSON(op),
-          this.entryPoint.address,
-        ])) as string);
-
-    // builder.resetOp();
-
-    return {
-      userOpHash,
-      wait: async () => {
-        if (dryRun) {
-          return null;
-        }
-
-        const end = Date.now() + this.waitTimeoutMs;
-        const block = await this.provider.getBlock("latest");
-        while (Date.now() < end) {
-          const events = await this.entryPoint.queryFilter(
-            this.entryPoint.filters.UserOperationEvent(userOpHash),
-            Math.max(0, block.number - 100)
-          );
-          if (events.length > 0) {
-            return events[0];
-          }
-          await new Promise((resolve) =>
-            setTimeout(resolve, this.waitIntervalMs)
-          );
-        }
-
-        return null;
-      },
-    };
-  }
+  
 }

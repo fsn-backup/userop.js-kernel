@@ -9,12 +9,12 @@ import {
   Client,
   Presets,
   BundlerJsonRpcProvider
-} from "./src";
+} from "./userop";
 import {
   EOASignature,
   estimateUserOperationGas,
   getGasPrice,
-} from "./src/preset/middleware";
+} from "./userop/preset/middleware";
 import {
   encodeFunctionData,
   toBytes,
@@ -43,7 +43,7 @@ import {
 } from "@alchemy/aa-core";
 import { kernelABI } from "./abi.kernel";
 import { nftABI } from "./abi.nft";
-import { UserOperationMiddlewareCtx } from "./src/context"
+import { UserOperationMiddlewareCtx } from "./userop/context"
 
 enum ParamCondition {
   EQUAL = 0,

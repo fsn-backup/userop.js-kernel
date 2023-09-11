@@ -133,11 +133,13 @@ function encodePermissionData(permission: Permission, merkleProof?: string[]): H
 
 async function main() {
 
+  const chainId = 6480001000;
+
   let nodeRpcUrl = "http://88.99.94.109:3334"
-  // let bundlerUrl = "http://88.99.94.109:14337/"
+  let bundlerUrl = "http://88.99.94.109:14337/"
 
   // let nodeRpcUrl = "http://127.0.0.1:8545"
-  let bundlerUrl = "http://127.0.0.1:14337"
+  // let bundlerUrl = "http://127.0.0.1:14337"
 
   const entryPoint = "0xba0917DF35Cf6c7aE1CABf5e7bED9a904F725318";
   const paymaster = "0x1a256A0221b030A8A50Cb18966Ebdc4325a92D7F"
@@ -147,8 +149,6 @@ async function main() {
   const ECDSAValidator = "0xBdD707ac36bC0176464292D03f4fAA1bf5fBCeba";
   const SessionKeyExecValidator = "0xFc3D30e186f622512b7d124C1B69D9f100215016";
   const SessionKeyOwnedValidator = "0x99D08AA79ea8BD6d127f51CF87ce0aD64643b854";
-  
-  const useValidator = SessionKeyExecValidator
 
 
   const nftAddress = "0xf578642ff303398103930832B779cD35891eBa35"
@@ -159,11 +159,8 @@ async function main() {
 
   const userAddress = "0x9c19BEd96de9cFBb7aF3D16ae39967F4141078cC"
   const userPrivateKey = "4fa0dcbe0e0d89b3e75c0221b517cdc69edbea3c4d88bf01988f3e52a2989b0e"
-  const userAA1Addr = "0x1991bC1C252134AcD08BFA05b0A6Df47394D6D85"
+  const userAA1Addr = "0xfAF73f4FeCDE6C5CB38537B54da9FE5942A01682"
 
-  // const sessionKeyAddr = "0x9F8Df84Ff8096C156bE988B29e358d5f6302ea8E"
-  const sessionKeyPrive = "b37db4b8b4a195056c40d92df7a8ae757022925059bdaa065fcf83bf0bb1c639"
-  const sessionKeyExecutor = "0xB5B2D6ab4aF3FB1C008d1933F8D0e3049e2d78Be"
 
   const serverAddr = "0xB5B2D6ab4aF3FB1C008d1933F8D0e3049e2d78Be"
   const serverPriv = "a01153107130534a21e9a4257e5670aed40a2c299f79b881c97e6d1a5a9f38a4"
@@ -176,9 +173,10 @@ async function main() {
 
   const receiveAddr = "0x33275cECEA5165f99e3128FF1899CBACe07C7d6C"
 
-  let sessionKeyPriv = "0x67cd30131c9c79930cbd14a4e1c687358a4a0d1f0d49096192498a394ea46972"
   let sessionKeyAddr = "0xa10F17c5dB9C2eD693bCa462D9A1590f95DF0e22"
-  // let sessionKeySigData = "0x11972eb4b60d4be19d7e2dd817199a51c15a5eb8aa7d90e54caedbdccaf9465a366808418c18ff0b174e28233ac6299a9a444124364289ca4a2344eb76e53d8a1b"
+  let sessionKeyPriv = "0x67cd30131c9c79930cbd14a4e1c687358a4a0d1f0d49096192498a394ea46972"
+  const sessionKeyExecutor = "0xB5B2D6ab4aF3FB1C008d1933F8D0e3049e2d78Be"
+
 
   let pageUserAddr = ""
   let pageUserPriv = "0x59c098d76886a06eaca4ccf5109021134bf94d24a458d1948431aa34be1b01e2"
@@ -200,7 +198,7 @@ async function main() {
 
   console.log("Kernel initializing...");
   const kernel = await Presets.Builder.Kernel.init(
-    userWallet,
+    serverWallet,
     nodeRpcUrl,
     {
       "entryPoint": entryPoint,
@@ -224,7 +222,6 @@ async function main() {
 
   // const sig = getFunctionSelector("mint(address)")
   const sig = "0x00000000";
-
   const permissions: Permission[] = [
     {
       target: userAA1Addr as Hex,
@@ -240,13 +237,14 @@ async function main() {
       ],
     },
   ];
-  
+
+  // act: validUntil - SvalidUntil
   const validAfter = 1594068745;
   const validUntil = 1623012745;
 
   const SvalidAfter = 1594068745;
-  const SvalidUntil = 1823012745;
-  // act: validUntil - SvalidUntil
+  const SvalidUntil = 1923012745;
+
 
   const sessionKeyData = {
     validAfter: SvalidAfter,
@@ -305,10 +303,8 @@ async function main() {
 
   let builder = kernel.execute(call)
     .setPaymasterAndData(paymaster)
+    .setSender(userAA1Addr)
   const userOp = await client.buildUserOperation(builder);
-
-
-  console.log("======")
 
   const hash = getUserOperationHash(
     {
@@ -325,35 +321,19 @@ async function main() {
       signature: userOp.signature as Hex,
     },
     entryPoint,
-    BigInt(6480001000)
+    BigInt(chainId)
   );
-  console.log("userop:", userOp)
-  console.log("user op hash", hash)
-
-  let hash2 = new UserOperationMiddlewareCtx(
-    userOp,
-    entryPoint,
-    6480001000
-  ).getUserOpHash()
-  console.log("hash2==hash:", hash2 == hash)
 
   const messageBytes = ethers.utils.arrayify(hash);
-  let sessionKeySigData = await sessionKeyWallet.signMessage(messageBytes);
-  console.log("sessionKeySigData", sessionKeySigData)
-
-  const messageHash = ethers.utils.hashMessage(messageBytes);
-  const recoveredAddress2 = ethers.utils.recoverAddress(messageHash, sessionKeySigData);
-  console.log("recover addr=", recoveredAddress2, recoveredAddress2 == sessionKeyAddr)
+  const sessionKeySigData = await sessionKeyWallet.signMessage(messageBytes);
 
   const sessionKeySig = concatHex([
     sessionKeyAddr as Hex,
     sessionKeySigData as Hex,
     encodedData,
   ]);
-  console.log("sessionKeySig", sessionKeySig)
 
-
-  let callData = kernel.proxy.interface.encodeFunctionData("execute", [
+  const callData = kernel.proxy.interface.encodeFunctionData("execute", [
     call.to,
     call.value,
     call.data,
@@ -363,13 +343,13 @@ async function main() {
   const enableSig = Buffer.from(enableSigHex, 'hex');
 
 
-  let domain = {
+  const domain = {
     name: "Kernel",
     version: "0.2.1",
     chainId: 6480001000,
     verifyingContract: address,
   }
-  let types = {
+  const types = {
     ValidatorApproved: [
       { name: "sig", type: "bytes4" },
       { name: "validatorData", type: "uint256" },
@@ -377,30 +357,29 @@ async function main() {
       { name: "enableData", type: "bytes" },
     ]
   }
-  let message = {
+  const message = {
     sig: enableSig,
     validatorData: hexToBigInt(
       concatHex([
         pad(toHex(validUntil), { size: 6 }),
         pad(toHex(validAfter), { size: 6 }),
-        useValidator,
+        SessionKeyOwnedValidator,
       ]),
       { size: 32 }
     ),
     executor: sessionKeyExecutor as Address,
     enableData: enableData,
   }
-  let enableSignature = await userWallet._signTypedData(domain, types, message);
-  console.log("enableSignature", enableSignature)
-
-  
+  // const enableSignature = await userWallet._signTypedData(domain, types, message);
+  const enableSignature = "0xf27bc23e55bea6f412c070766bb5e2c802ae6e475c68dbfbc8677fc4ceebb56d5564a761fd8b7736f3b5f41934e72c09806d8ed1ba60c43941672aff15e913171c"
+  console.log("enableSignature:", enableSignature)
   const enableSigLength = enableSignature.length / 2 - 1;
 
-  let signature = concatHex([
+  const signature = concatHex([
     validatorMode,
     pad(toHex(validUntil), { size: 6 }), // 6 bytes 4 - 10
     pad(toHex(validAfter), { size: 6 }), // 6 bytes 10 - 16
-    pad(useValidator, { size: 20 }), // 20 bytes 16 - 36
+    pad(SessionKeyOwnedValidator, { size: 20 }), // 20 bytes 16 - 36
     pad(sessionKeyExecutor as Hex, { size: 20 }), // 20 bytes 36 - 56
     pad(toHex(enableDataLength), { size: 32 }),
     enableData,
@@ -408,17 +387,12 @@ async function main() {
     enableSignature as Hex,
     sessionKeySig as Hex,
   ]);
-  console.log("signature", signature)
-  // console.log("enable sig length", enableSigLength, "offset", 4 + 6 + 6 + 20 + 20 + 32 + enableDataLength + 32)
-  // console.log("signature length", signature.length/2-1)
-  // console.log("sessionKeySig length", sessionKeySig.length/2-1)
 
 
   builder = builder
-    // .setPreVerificationGas(userOp.preVerificationGas)
-    // .setVerificationGasLimit(userOp.verificationGasLimit)
     .setPaymasterAndData(paymaster)
     .setSignature(signature)
+    .setSender(userAA1Addr)
   console.log("Builder initialized")
 
   userOp.signature = signature;
@@ -430,7 +404,6 @@ async function main() {
     }
   );
   console.log(`UserOpHash: ${res.userOpHash}`);
-  console.log(res.userOpHash == hash)
 
   const receipt = await res.wait();
   console.log(`receipt: ${receipt?.transactionHash}`);

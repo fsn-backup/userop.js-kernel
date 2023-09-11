@@ -9,12 +9,12 @@ import {
   Client,
   Presets,
   BundlerJsonRpcProvider
-} from "./src";
+} from "./userop";
 import {
   EOASignature,
   estimateUserOperationGas,
   getGasPrice,
-} from "./src/preset/middleware";
+} from "./userop/preset/middleware";
 import {
   encodeFunctionData,
   toBytes,
@@ -40,7 +40,7 @@ import {
   getChain,
   type SignTypedDataParams,
 } from "@alchemy/aa-core";
-import { UserOperationMiddlewareCtx } from "./src/context";
+import { UserOperationMiddlewareCtx } from "./userop/context";
 
 
 function bytesToBase64(bytes: Uint8Array) {
