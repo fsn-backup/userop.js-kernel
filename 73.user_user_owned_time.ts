@@ -134,10 +134,10 @@ function encodePermissionData(permission: Permission, merkleProof?: string[]): H
 async function main() {
 
   let nodeRpcUrl = "http://88.99.94.109:3334"
-  // let bundlerUrl = "http://88.99.94.109:14337/"
+  let bundlerUrl = "http://88.99.94.109:14337/"
 
   // let nodeRpcUrl = "http://127.0.0.1:8545"
-  let bundlerUrl = "http://127.0.0.1:14337"
+  // let bundlerUrl = "http://127.0.0.1:14337"
 
   const entryPoint = "0xba0917DF35Cf6c7aE1CABf5e7bED9a904F725318";
   const paymaster = "0x1a256A0221b030A8A50Cb18966Ebdc4325a92D7F"
@@ -239,17 +239,23 @@ async function main() {
     },
   ];
 
-  const validAfter = 1;
-  const validUntil = 1823012745;
+  // const validAfter = 1;
+  // const validUntil = 1823012745;
 
-  const SvalidAfter = 1;
-  const SvalidUntil = 1623012745;
+  // const SvalidAfter = 1;
+  // const SvalidUntil = 1623012745;
   
   // const validAfter = 1594068745;
   // const validUntil = 1;
 
   // const SvalidAfter = 1594068745;
   // const SvalidUntil = 1;
+
+  const validAfter = 1594068745;
+  const validUntil = 1623012745;
+
+  const SvalidAfter = 1594068745;
+  const SvalidUntil = 1923012745;
 
   // act: validUntil - SvalidUntil
 
