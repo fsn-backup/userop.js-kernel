@@ -26,10 +26,14 @@ function multiplyHexString(hexString: string, factor: number): string {
 export const verifyingPaymaster =
   (paymasterRpc: string, context: any): UserOperationMiddlewareFn =>
   async (ctx) => {
+    console.log("Enter verifyingPaymaster")
+
     ctx.op.verificationGasLimit = ethers.BigNumber.from(
       ctx.op.verificationGasLimit
     ).mul(3);
     console.log("===672===",ctx.op.verificationGasLimit)
+
+    console.log("===671===",paymasterRpc)
 
     const provider = new ethers.providers.JsonRpcProvider(paymasterRpc);
     const pm = (await provider.send("pm_sponsorUserOperation", [

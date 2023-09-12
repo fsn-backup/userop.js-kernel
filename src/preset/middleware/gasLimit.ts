@@ -30,6 +30,8 @@ export const DEFAULT_VERIFICATION_GAS_LIMIT = ethers.BigNumber.from(70000);
 export const estimateUserOperationGas =
   (provider: ethers.providers.JsonRpcProvider): UserOperationMiddlewareFn =>
   async (ctx) => {
+    console.log("Enter estimateUserOperationGas")
+
     // if (ethers.BigNumber.from(ctx.op.nonce).isZero()) {
     //   ctx.op.verificationGasLimit = ethers.BigNumber.from(
     //     ctx.op.verificationGasLimit

@@ -53,13 +53,13 @@ async function main() {
 
   let nodeRpcUrl = "http://88.99.94.109:3334"
   let bundlerUrl = "http://88.99.94.109:14337/"
+  let paymasterUrl = "http://127.0.0.1:8000/paymaster"
 
   // let nodeRpcUrl = "http://127.0.0.1:8545"
   // let bundlerUrl = "http://127.0.0.1:14337"
 
   const entryPoint = "0xba0917DF35Cf6c7aE1CABf5e7bED9a904F725318";
-  // const paymaster = "0x1a256A0221b030A8A50Cb18966Ebdc4325a92D7F"
-  const paymaster = "0x45d330503532C9665f650Cf7B19389BdfDF123fF"   // need sign
+  const paymaster = "0x1fb73194C7Bf3C97b73683e1232804F092BA043E"   // need sign
   
 
   const kernelFactory = "0xA171f41588bA43666F4ee9F1f87C1D84f573d848";
@@ -222,21 +222,9 @@ async function main() {
       ? encodePermissionData(permissions[0], merkleProof)
       : "0x";
 
-  console.log("create builder...")
+
   let builder = kernel.execute(call)
-    .setPaymasterAndData(paymaster)
   const userOp = await client.buildUserOperation(builder);
-
-  // --- get paymaster signature ---
-  // const paymasterContract = new ethers.Contract(paymaster, paymasterABI, paymasterSignerWallet);
-  // const paymasterHash = await paymasterContract.getHash(userOp, SvalidUntil, validUntil)
-  // console.log("paymasterHash:", paymasterHash)
-  // const paymasterSignature = await paymasterSignerWallet.signMessage(ethers.utils.arrayify(paymasterHash));
-  // console.log("paymasterSignature:", paymasterSignature)
-
-  return 
-
-  // --- get paymaster signature end---
 
 
   const hash = getUserOperationHash(
@@ -256,6 +244,8 @@ async function main() {
     entryPoint,
     BigInt(chainId)
   );
+  // console.log("session key OP: ", userOp)
+  // console.log("session key OP hash: ", hash)
 
   const messageBytes = ethers.utils.arrayify(hash);
   const sessionKeySigData = await sessionKeyWallet.signMessage(messageBytes);
@@ -322,7 +312,6 @@ async function main() {
 
 
   builder = builder
-    .setPaymasterAndData(paymaster)
     .setSignature(signature)
   console.log("Builder initialized")
 

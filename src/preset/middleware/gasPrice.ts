@@ -26,6 +26,8 @@ const legacyGasPrice = async (provider: ethers.providers.JsonRpcProvider) => {
 export const getGasPrice =
   (provider: ethers.providers.JsonRpcProvider): UserOperationMiddlewareFn =>
   async (ctx) => {
+    console.log("Enter getGasPrice")
+
     let eip1559Error;
     try {
       const { maxFeePerGas, maxPriorityFeePerGas } = await eip1559GasPrice(
