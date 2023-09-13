@@ -152,14 +152,7 @@ export class Kernel extends UserOperationBuilder {
     base = base.useMiddleware(getGasPrice(instance.provider))
       .useMiddleware(estimateUserOperationGas(instance.provider))
 
-    // const withPM = opts?.paymasterMiddleware
-    //   ? base.useMiddleware(opts.paymasterMiddleware)
-    //   : base.useMiddleware(estimateUserOperationGas(instance.provider));
-
     return base
-      // .useMiddleware(EOASignature(instance.signer))
-      // .useMiddleware(instance.sudoMode)
-      // .useMiddleware(modeGas)
   }
 
   execute(call: ICall) {
