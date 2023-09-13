@@ -32,19 +32,18 @@ export const estimateUserOperationGas =
   async (ctx) => {
     console.log("Enter estimateUserOperationGas")
 
-    // if (ethers.BigNumber.from(ctx.op.nonce).isZero()) {
-    //   ctx.op.verificationGasLimit = ethers.BigNumber.from(
-    //     ctx.op.verificationGasLimit
-    //   ).add(await estimateCreationGas(provider, ctx.op.initCode));
-    // }
+    if (ethers.BigNumber.from(ctx.op.nonce).isZero()) {
+      ctx.op.verificationGasLimit = ethers.BigNumber.from(
+        ctx.op.verificationGasLimit
+      ).add(await estimateCreationGas(provider, ctx.op.initCode));
+    }
 
     const est = (await provider.send("eth_estimateUserOperationGas", [
       OpToJSON(ctx.op),
       ctx.entryPoint,
     ])) as GasEstimate;
 
-    if (ctx.op.verificationGasLimit.toString() == DEFAULT_VERIFICATION_GAS_LIMIT.toString() ||  ctx.op.verificationGasLimit.toString() == "232400") {
-      ctx.op.verificationGasLimit = ethers.BigNumber.from(est.verificationGasLimit).mul(ethers.BigNumber.from("2"))
-    }
-    // ctx.op.verificationGasLimit = est.verificationGasLimit ?? est.verificationGas;
+    ctx.op.verificationGasLimit = est.verificationGasLimit ?? est.verificationGas;
+    ctx.op.preVerificationGas = est.preVerificationGas;
+    ctx.op.callGasLimit = est.callGasLimit;
   };

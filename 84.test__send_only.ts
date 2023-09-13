@@ -46,6 +46,7 @@ import { nftABI } from "./abi.nft";
 import { paymasterABI } from "./abi.paymaster";
 import { UserOperationMiddlewareCtx } from "./src/context"
 import {ParamCondition, ParamRules, Operation, Permission, encodePermissionData } from "./src/kernel_util"
+import {OpToJSON} from "./src/utils";
 
 async function main() {
 
@@ -117,6 +118,33 @@ async function main() {
   const sessionKeyWallet = new ethers.Wallet(sessionKeyPriv, provider);
   const paymasterSignerWallet = new ethers.Wallet(paymasterSignerPriv, provider);
 
+
+  const paymasterFn = async (ctx: UserOperationMiddlewareCtx) => {
+    console.log("Enter verifyingPaymaster")
+
+    const validAfter = 1594068745;
+    const validUntil = 1623012745;
+    const SvalidAfter = 1594068745;
+    const SvalidUntil = 1923012745;
+
+    const paymasterUrl = "http://88.99.94.109:14339/paymaster"
+    const pProvider = new ethers.providers.JsonRpcProvider(paymasterUrl);
+    const pm = (await pProvider.send("pm_sponsorUserOperation", [
+      OpToJSON(ctx.op),
+      ctx.entryPoint,
+      ctx,
+      SvalidUntil,
+      validUntil
+    ]));
+
+    ctx.op.paymasterAndData = concatHex([
+      pm['paymaster'] as Hex,
+      pad(toHex(SvalidUntil), {size: 32}),
+      pad(toHex(validUntil), {size: 32}),
+      pm['paymasterSignature'] as Hex,
+    ])
+  }
+
   console.log("Kernel initializing...");
   const kernel = await Presets.Builder.Kernel.init(
     userWallet,
@@ -128,6 +156,7 @@ async function main() {
       "overrideBundlerRpc": bundlerUrl,
       "kernelImpl": kernelImpl,
       "ECDSAValidator": ECDSAValidator,
+      "paymasterMiddleware": paymasterFn
     }
   );
   console.log("Kernel initialized");
@@ -226,7 +255,7 @@ async function main() {
   let builder = kernel.execute(call)
   const userOp = await client.buildUserOperation(builder);
 
-  console.log("1=", userOp)
+  // console.log("1=", userOp)
 
   const hash = getUserOperationHash(
     {
@@ -311,14 +340,10 @@ async function main() {
     sessionKeySig as Hex,
   ]);
 
-
-  builder = builder
-    .setSignature(signature)
-  console.log("Builder initialized")
-
   userOp.signature = signature;
-  const res = await client.sendUserOperation(
+  const res = await client.sendUserOperationOnly(
     builder,
+    userOp,
     {
       onBuild: (op) => console.log("Signed UserOperation:", op),
       dryRun: false

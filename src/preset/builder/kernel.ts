@@ -132,14 +132,8 @@ export class Kernel extends UserOperationBuilder {
       // instance.multisend = Multisend__factory.connect(ms, instance.provider);
       instance.proxy = Kernel__factory.connect(addr, instance.provider);
     }
-    // const modeGas = async (ctx:any) => {
-    //   ctx.op.maxFeePerGas = ctx.op.maxFeePerGas*100;
-    //   ctx.op.callGasLimit = ctx.op.callGasLimit*100;
-    //   ctx.op.verificationGasLimit = ctx.op.verificationGasLimit*100;
-    //   ctx.op.preVerificationGas = ctx.op.preVerificationGas*100;
-    //   ctx.op.maxPriorityFeePerGas = ctx.op.maxPriorityFeePerGas*100;
-    // };
-    const base = instance
+
+    let base = instance
       .useDefaults({
         sender: instance.proxy.address,
         signature: ethers.utils.hexConcat([
@@ -150,13 +144,19 @@ export class Kernel extends UserOperationBuilder {
         ]),
       })
       .useMiddleware(instance.resolveAccount)
-      .useMiddleware(getGasPrice(instance.provider));
 
-    const withPM = opts?.paymasterMiddleware
-      ? base.useMiddleware(opts.paymasterMiddleware)
-      : base.useMiddleware(estimateUserOperationGas(instance.provider));
+    if (opts?.paymasterMiddleware) {
+      base = base.useMiddleware(opts.paymasterMiddleware)
+    }
 
-    return withPM
+    base = base.useMiddleware(getGasPrice(instance.provider))
+      .useMiddleware(estimateUserOperationGas(instance.provider))
+
+    // const withPM = opts?.paymasterMiddleware
+    //   ? base.useMiddleware(opts.paymasterMiddleware)
+    //   : base.useMiddleware(estimateUserOperationGas(instance.provider));
+
+    return base
       // .useMiddleware(EOASignature(instance.signer))
       // .useMiddleware(instance.sudoMode)
       // .useMiddleware(modeGas)
