@@ -54,19 +54,19 @@ async function main() {
 
   let nodeRpcUrl = "http://88.99.94.109:3334"
   let bundlerUrl = "http://88.99.94.109:14337/"
-  let paymasterUrl = "http://127.0.0.1:8000/paymaster"
+  // let paymasterUrl = "http://127.0.0.1:8000/paymaster"
 
   // let nodeRpcUrl = "http://127.0.0.1:8545"
   // let bundlerUrl = "http://127.0.0.1:14337"
 
   const entryPoint = "0xba0917DF35Cf6c7aE1CABf5e7bED9a904F725318";
-  const paymaster = "0x1fb73194C7Bf3C97b73683e1232804F092BA043E"   // need sign
+  const paymaster = "0x396634BcFc59ad0096BE03c04f179a3B5aC00568"  
 
 
   const kernelFactory = "0xA171f41588bA43666F4ee9F1f87C1D84f573d848";
   const kernelImpl = "0x3FEf6c193e5632d6fd65Da1bC82d34EDc33Cd251";
   const ECDSAValidator = "0xBdD707ac36bC0176464292D03f4fAA1bf5fBCeba";
-  const SessionKeyExecValidator = "0xFc3D30e186f622512b7d124C1B69D9f100215016";
+  const SessionKeyExecValidator = "0x75Fb570b6e16D6cA61C733E629c297E863F24076";
   const SessionKeyOwnedValidator = "0x99D08AA79ea8BD6d127f51CF87ce0aD64643b854";
 
 
@@ -188,11 +188,10 @@ async function main() {
   }
 
 
-  // const sig = getFunctionSelector("mint(address)")
-  const sig = "0x00000000";
+  const sig = getFunctionSelector("safeMint(address)")
   const permissions: Permission[] = [
     {
-      target: userAA1Addr as Hex,
+      target: nftAddress as Hex,
       valueLimit: 0,
       sig: sig,
       operation: Operation.Call,
@@ -200,7 +199,7 @@ async function main() {
         {
           condition: ParamCondition.EQUAL,
           offset: 0,
-          param: pad(sessionKeyExecutor as Hex, { size: 32 }),
+          param: pad(address as Hex, { size: 32 }),
         },
       ],
     },
@@ -334,7 +333,7 @@ async function main() {
       concatHex([
         pad(toHex(validUntil), { size: 6 }),
         pad(toHex(validAfter), { size: 6 }),
-        SessionKeyOwnedValidator,
+        SessionKeyExecValidator,
       ]),
       { size: 32 }
     ),
@@ -349,7 +348,7 @@ async function main() {
     validatorMode,
     pad(toHex(validUntil), { size: 6 }), // 6 bytes 4 - 10
     pad(toHex(validAfter), { size: 6 }), // 6 bytes 10 - 16
-    pad(SessionKeyOwnedValidator, { size: 20 }), // 20 bytes 16 - 36
+    pad(SessionKeyExecValidator, { size: 20 }), // 20 bytes 16 - 36
     pad(sessionKeyExecutor as Hex, { size: 20 }), // 20 bytes 36 - 56
     pad(toHex(enableDataLength), { size: 32 }),
     enableData,

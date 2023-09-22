@@ -103,14 +103,12 @@ export class Kernel extends UserOperationBuilder {
       instance.initCode = ethers.utils.hexConcat([
         instance.factory.address,
         instance.factory.interface.encodeFunctionData("createAccount", [
-          // KernelConst.KernelImpl,
           instance.kernelImpl.address,
           instance.proxy.interface.encodeFunctionData(
             "initialize",
             [
-              // KernelConst.ECDSAValidator,
               instance.ECDSAValidator,
-              await instance.signer.getAddress(),
+              opts?.singer ?? await instance.signer.getAddress(),
             ]
           ),
           ethers.BigNumber.from(opts?.salt ?? 0),

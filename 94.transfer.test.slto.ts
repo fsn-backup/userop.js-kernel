@@ -54,13 +54,13 @@ async function main() {
 
   let nodeRpcUrl = "http://88.99.94.109:3334"
   let bundlerUrl = "http://88.99.94.109:14337/"
-  let paymasterUrl = "http://127.0.0.1:8000/paymaster"
+  // let paymasterUrl = "http://127.0.0.1:8000/paymaster"
 
   // let nodeRpcUrl = "http://127.0.0.1:8545"
   // let bundlerUrl = "http://127.0.0.1:14337"
 
   const entryPoint = "0xba0917DF35Cf6c7aE1CABf5e7bED9a904F725318";
-  const paymaster = "0x1fb73194C7Bf3C97b73683e1232804F092BA043E"   // need sign
+  const paymaster = "0x5e65FfbB218267C9Fee3153a5058B20Ecf301885" 
 
 
   const kernelFactory = "0xA171f41588bA43666F4ee9F1f87C1D84f573d848";
@@ -74,7 +74,7 @@ async function main() {
 
   const target = "0x93356ED2567a40870B542820EA97f06C0DfFd50E"
   const value = ethers.utils.parseEther('0')
-  const aaWalletSalt = "1"
+  const aaWalletSalt = "2"
 
   const userAddress = "0x9c19BEd96de9cFBb7aF3D16ae39967F4141078cC"
   const userPrivateKey = "4fa0dcbe0e0d89b3e75c0221b517cdc69edbea3c4d88bf01988f3e52a2989b0e"
@@ -123,21 +123,12 @@ async function main() {
     console.log("Enter verifyingPaymaster")
 
     const validAfter = 1594068745;
-    let validUntil = 1623012745;
+    const validUntil = 1623012745;
     const SvalidAfter = 1594068745;
-    let SvalidUntil = 1923012745;
+    const SvalidUntil = 1923012745;
 
-    // const currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-    // console.log("Current Timestamp in seconds:", currentTimestampInSeconds);
-
-    // const oneDayInSeconds = 24 * 60 * 60;
-    // const oneDayLaterTimestampInSeconds = currentTimestampInSeconds + oneDayInSeconds;
-    // console.log("One day later Timestamp in seconds:", oneDayLaterTimestampInSeconds);
-
-    // validUntil = currentTimestampInSeconds
-    // SvalidUntil = oneDayLaterTimestampInSeconds
-
-    const paymasterUrl = "http://88.99.94.109:14339/paymaster"
+    // const paymasterUrl = "http://88.99.94.109:14339/paymaster"
+    const paymasterUrl = "http://127.0.0.1:14339/paymaster"
     const pProvider = new ethers.providers.JsonRpcProvider(paymasterUrl);
     const pm = (await pProvider.send("pm_sponsorUserOperation", [
       OpToJSON(ctx.op),
@@ -174,19 +165,11 @@ async function main() {
   const address = kernel.getSender();
   console.log(`Kernel address: ${address}`);
 
-
-  const NFTContract = new ethers.Contract(
-    nftAddress,
-    nftABI,
-    provider
-  );
-
   const call = {
-    to: nftAddress,
+    to: userAA1Addr,
     value: 0,
-    data: NFTContract.interface.encodeFunctionData("safeMint", [address])
-  }
-
+    data: "0x",
+  };
 
   // const sig = getFunctionSelector("mint(address)")
   const sig = "0x00000000";

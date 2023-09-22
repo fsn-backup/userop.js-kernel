@@ -112,6 +112,7 @@ export interface IPresetBuilderOpts {
   overrideBundlerRpc?: string;
   kernelImpl?: string;
   ECDSAValidator?: string;
+  singer?: string;
 }
 
 export interface ICall {

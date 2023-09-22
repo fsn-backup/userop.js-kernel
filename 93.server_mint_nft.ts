@@ -54,8 +54,9 @@ async function main() {
 
   let nodeRpcUrl = "http://88.99.94.109:3334"
   let bundlerUrl = "http://88.99.94.109:14337/"
-  let paymasterUrl = "http://127.0.0.1:8000/paymaster"
-
+  // let paymasterUrl = "http://127.0.0.1:8000/paymaster"
+  let paymasterUrl = "https://rpc-paymaster-l2-op-endurance-testnet1.fusionist.io/paymaster"
+  
   // let nodeRpcUrl = "http://127.0.0.1:8545"
   // let bundlerUrl = "http://127.0.0.1:14337"
 
