@@ -1,28 +1,12 @@
 import {
-    encodeFunctionData,
-    toBytes,
-    concat,
     pad,
-    toHex,
     keccak256,
-    encodeAbiParameters,
-    concatHex,
-    zeroAddress,
-    decodeFunctionData,
-    isHex,
-    hexToBigInt,
-    getFunctionSelector,
-    getContract
+    encodeAbiParameters
 } from "viem";
 
 import {
-    getUserOperationHash,
     type Address,
     type Hex,
-    type SmartAccountSigner,
-    type UserOperationRequest,
-    getChain,
-    type SignTypedDataParams,
 } from "@alchemy/aa-core";
 import { MerkleTree } from "merkletreejs";
 
