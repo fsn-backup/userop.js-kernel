@@ -24,7 +24,7 @@ import {
     getChain,
     type SignTypedDataParams,
 } from "@alchemy/aa-core";
-
+import { MerkleTree } from "merkletreejs";
 
 
 export enum ParamCondition {
@@ -110,4 +110,52 @@ export function encodePermissionData(permission: Permission, merkleProof?: strin
         values = [permission];
     }
     return encodeAbiParameters(params, values);
+}
+
+export interface SessionKeyData {
+    validUntil: number;
+    validAfter: number;
+    paymaster?: Address;
+    permissions?: Permission[];
+}
+
+export function getMerkleTree(sessionKeyData: SessionKeyData): MerkleTree {
+    const permissionPacked = sessionKeyData.permissions?.map(
+        (permission) => encodePermissionData(permission)
+    );
+    if (permissionPacked?.length === 1)
+        permissionPacked.push(permissionPacked[0]);
+
+    return permissionPacked && permissionPacked.length !== 0
+        ? new MerkleTree(permissionPacked, keccak256, {
+            sortPairs: true,
+            hashLeaves: true,
+        })
+        : new MerkleTree([pad("0x00", { size: 32 })], keccak256, {
+            hashLeaves: false,
+        });
+}
+
+export function getEncodedData(sessionKeyData: SessionKeyData): Hex {
+    const merkleTree = getMerkleTree(sessionKeyData)
+
+    const encodedPermissionData =
+        sessionKeyData.permissions &&
+            sessionKeyData.permissions.length !== 0 &&
+            sessionKeyData.permissions
+            ? encodePermissionData(sessionKeyData.permissions[0])
+            : "0x";
+
+    const merkleProof = merkleTree.getHexProof(
+        keccak256(encodedPermissionData)
+    );
+
+    const encodedData =
+        sessionKeyData.permissions &&
+            sessionKeyData.permissions.length !== 0 &&
+            sessionKeyData.permissions
+            ? encodePermissionData(sessionKeyData.permissions[0], merkleProof)
+            : "0x";
+
+    return encodedData;
 }

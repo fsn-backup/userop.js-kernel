@@ -46,7 +46,10 @@ import { kernelABI } from "./abi.kernel";
 import { nftABI } from "./abi.nft";
 import { paymasterABI } from "./abi.paymaster";
 import { UserOperationMiddlewareCtx } from "./src/context"
-import { ParamCondition, ParamRules, Operation, Permission, encodePermissionData } from "./src/kernel_util"
+import {
+  ParamCondition, ParamRules, Operation, Permission, encodePermissionData,
+  getMerkleTree, SessionKeyData, getEncodedData
+} from "./src/kernel_util"
 import { OpToJSON } from "./src/utils";
 
 async function main() {
@@ -128,7 +131,6 @@ async function main() {
   const SvalidAfter = 1594068745;
   const SvalidUntil = 1923012745;
 
-
   console.log("Kernel initializing...");
   const kernel = await Presets.Builder.Kernel.init(
     userWallet,
@@ -154,7 +156,6 @@ async function main() {
   const address = kernel.getSender();
   console.log(`Kernel address: ${address}`);
 
-
   const NFTContract = new ethers.Contract(
     nftAddress,
     nftABI,
@@ -166,7 +167,6 @@ async function main() {
     value: 0,
     data: NFTContract.interface.encodeFunctionData("safeMint", [address])
   }
-
 
   const sig = getFunctionSelector("safeMint(address)")
   const permissions: Permission[] = [
@@ -185,10 +185,7 @@ async function main() {
     },
   ];
 
-
-
-
-  const sessionKeyData = {
+  const sessionKeyData: SessionKeyData = {
     validAfter: SvalidAfter,
     validUntil: SvalidUntil,
     permissions,
@@ -197,24 +194,7 @@ async function main() {
 
   const validatorMode = "0x00000002"
 
-  function getMerkleTree(): MerkleTree {
-    const permissionPacked = sessionKeyData.permissions?.map(
-      (permission) => encodePermissionData(permission)
-    );
-    if (permissionPacked?.length === 1)
-      permissionPacked.push(permissionPacked[0]);
-
-    return permissionPacked && permissionPacked.length !== 0
-      ? new MerkleTree(permissionPacked, keccak256, {
-        sortPairs: true,
-        hashLeaves: true,
-      })
-      : new MerkleTree([pad("0x00", { size: 32 })], keccak256, {
-        hashLeaves: false,
-      });
-  }
-
-  const merkleTree = getMerkleTree()
+  const merkleTree = getMerkleTree(sessionKeyData)
   const enableData = concat([
     sessionKeyAddr as Hex,
     pad(merkleTree.getHexRoot() as Hex, { size: 32 }),
@@ -222,52 +202,18 @@ async function main() {
     pad(toHex(sessionKeyData.validUntil), { size: 6 }),
     paymaster,
   ])
-  // console.log("enableData:", enableData)
   const enableDataLength = enableData.length / 2 - 1;
 
-  const encodedPermissionData =
-    sessionKeyData.permissions &&
-      sessionKeyData.permissions.length !== 0 &&
-      permissions
-      ? encodePermissionData(permissions[0])
-      : "0x";
+  const encodedData = getEncodedData(sessionKeyData);
 
-  const merkleProof = merkleTree.getHexProof(
-    keccak256(encodedPermissionData)
-  );
-
-  const encodedData =
-    sessionKeyData.permissions &&
-      sessionKeyData.permissions.length !== 0 &&
-      permissions
-      ? encodePermissionData(permissions[0], merkleProof)
-      : "0x";
-
-
-  let builder = kernel.execute(call)
+  const builder = kernel.execute(call)
   const userOp = await client.buildUserOperation(builder);
 
-  // console.log("1=", userOp)
-
-  const hash = getUserOperationHash(
-    {
-      sender: userOp.sender as Address,
-      nonce: userOp.nonce as Hex,
-      initCode: userOp.initCode as Hex,
-      callData: userOp.callData as Hex,
-      callGasLimit: userOp.callGasLimit as Hex,
-      verificationGasLimit: userOp.verificationGasLimit as Hex,
-      preVerificationGas: userOp.preVerificationGas as Hex,
-      maxFeePerGas: userOp.maxFeePerGas as Hex,
-      maxPriorityFeePerGas: userOp.maxPriorityFeePerGas as Hex,
-      paymasterAndData: userOp.paymasterAndData as Hex,
-      signature: userOp.signature as Hex,
-    },
+  const hash = new UserOperationMiddlewareCtx(
+    userOp,
     entryPoint,
-    BigInt(chainId)
-  );
-  // console.log("session key OP: ", userOp)
-  // console.log("session key OP hash: ", hash)
+    chainId
+  ).getUserOpHash()
 
   const messageBytes = ethers.utils.arrayify(hash);
   const sessionKeySigData = await sessionKeyWallet.signMessage(messageBytes);
