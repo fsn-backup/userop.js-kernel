@@ -6,6 +6,7 @@ import {
   EOASignature,
   estimateUserOperationGas,
   getGasPrice,
+  verifyingPaymaster,
 } from "../middleware";
 import {
   EntryPoint,

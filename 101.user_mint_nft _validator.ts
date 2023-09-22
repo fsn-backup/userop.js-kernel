@@ -14,6 +14,7 @@ import {
   EOASignature,
   estimateUserOperationGas,
   getGasPrice,
+  verifyingPaymaster,
 } from "./src/preset/middleware";
 import {
   encodeFunctionData,
@@ -54,7 +55,8 @@ async function main() {
 
   let nodeRpcUrl = "http://88.99.94.109:3334"
   let bundlerUrl = "http://88.99.94.109:14337/"
-  // let paymasterUrl = "http://127.0.0.1:8000/paymaster"
+  const paymasterUrl = "http://88.99.94.109:14339/paymaster"
+
 
   // let nodeRpcUrl = "http://127.0.0.1:8545"
   // let bundlerUrl = "http://127.0.0.1:14337"
@@ -119,41 +121,13 @@ async function main() {
   const paymasterSignerWallet = new ethers.Wallet(paymasterSignerPriv, provider);
 
 
-  const paymasterFn = async (ctx: UserOperationMiddlewareCtx) => {
-    console.log("Enter verifyingPaymaster")
+  // act: validUntil - SvalidUntil
+  const validAfter = 1594068745;
+  const validUntil = 1623012745;
 
-    const validAfter = 1594068745;
-    let validUntil = 1623012745;
-    const SvalidAfter = 1594068745;
-    let SvalidUntil = 1923012745;
+  const SvalidAfter = 1594068745;
+  const SvalidUntil = 1923012745;
 
-    // const currentTimestampInSeconds = Math.floor(Date.now() / 1000);
-    // console.log("Current Timestamp in seconds:", currentTimestampInSeconds);
-
-    // const oneDayInSeconds = 24 * 60 * 60;
-    // const oneDayLaterTimestampInSeconds = currentTimestampInSeconds + oneDayInSeconds;
-    // console.log("One day later Timestamp in seconds:", oneDayLaterTimestampInSeconds);
-
-    // validUntil = currentTimestampInSeconds
-    // SvalidUntil = oneDayLaterTimestampInSeconds
-
-    const paymasterUrl = "http://88.99.94.109:14339/paymaster"
-    const pProvider = new ethers.providers.JsonRpcProvider(paymasterUrl);
-    const pm = (await pProvider.send("pm_sponsorUserOperation", [
-      OpToJSON(ctx.op),
-      ctx.entryPoint,
-      ctx,
-      SvalidUntil,
-      validUntil
-    ]));
-
-    ctx.op.paymasterAndData = concatHex([
-      pm['paymaster'] as Hex,
-      pad(toHex(SvalidUntil), { size: 32 }),
-      pad(toHex(validUntil), { size: 32 }),
-      pm['paymasterSignature'] as Hex,
-    ])
-  }
 
   console.log("Kernel initializing...");
   const kernel = await Presets.Builder.Kernel.init(
@@ -166,7 +140,13 @@ async function main() {
       "overrideBundlerRpc": bundlerUrl,
       "kernelImpl": kernelImpl,
       "ECDSAValidator": ECDSAValidator,
-      "paymasterMiddleware": paymasterFn
+      "paymasterMiddleware": verifyingPaymaster(
+        {
+          rpcUrl: paymasterUrl,
+          validAfter: validUntil,
+          validUntil: SvalidUntil,
+        }
+      )
     }
   );
   console.log("Kernel initialized");
@@ -205,12 +185,7 @@ async function main() {
     },
   ];
 
-  // act: validUntil - SvalidUntil
-  const validAfter = 1594068745;
-  const validUntil = 1623012745;
 
-  const SvalidAfter = 1594068745;
-  const SvalidUntil = 1923012745;
 
 
   const sessionKeyData = {

@@ -6,34 +6,6 @@ import {
   IUserOperationBuilder,
   UserOperationMiddlewareFn,
 } from "./types";
-import {
-  BundlerJsonRpcProvider
-} from ".";
-import {
-  encodeFunctionData,
-  toBytes,
-  concat,
-  pad,
-  toHex,
-  keccak256,
-  encodeAbiParameters,
-  concatHex,
-  zeroAddress,
-  decodeFunctionData,
-  isHex,
-  hexToBigInt,
-  getFunctionSelector,
-  getContract
-} from "viem";
-import {
-  getUserOperationHash,
-  type Address,
-  type Hex,
-  type SmartAccountSigner,
-  type UserOperationRequest,
-  getChain,
-  type SignTypedDataParams,
-} from "@alchemy/aa-core";
 
 export const DEFAULT_VERIFICATION_GAS_LIMIT = ethers.BigNumber.from(70000);
 export const DEFAULT_CALL_GAS_LIMIT = ethers.BigNumber.from(35000);

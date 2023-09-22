@@ -115,6 +115,12 @@ export interface IPresetBuilderOpts {
   singer?: string;
 }
 
+export interface IPaymasterOpts {
+  rpcUrl: string;
+  validAfter: number;
+  validUntil: number;
+}
+
 export interface ICall {
   to: string;
   value: BigNumberish;
