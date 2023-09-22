@@ -60,7 +60,7 @@ async function main() {
   // let bundlerUrl = "http://127.0.0.1:14337"
 
   const entryPoint = "0xba0917DF35Cf6c7aE1CABf5e7bED9a904F725318";
-  const paymaster = "0x396634BcFc59ad0096BE03c04f179a3B5aC00568"  
+  const paymaster = "0x396634BcFc59ad0096BE03c04f179a3B5aC00568"
 
 
   const kernelFactory = "0xA171f41588bA43666F4ee9F1f87C1D84f573d848";
