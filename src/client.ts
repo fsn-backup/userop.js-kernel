@@ -30,7 +30,7 @@ export class Client implements IClient {
     );
     this.chainId = ethers.BigNumber.from(1);
     this.waitTimeoutMs = 30000;
-    this.waitIntervalMs = 5000;
+    this.waitIntervalMs = 100;
   }
 
   public static async init(rpcUrl: string, opts?: IClientOpts) {
@@ -56,14 +56,14 @@ export class Client implements IClient {
 
     const userOpHash = dryRun
       ? new UserOperationMiddlewareCtx(
-          op,
-          this.entryPoint.address,
-          this.chainId
-        ).getUserOpHash()
+        op,
+        this.entryPoint.address,
+        this.chainId
+      ).getUserOpHash()
       : ((await this.provider.send("eth_sendUserOperation", [
-          OpToJSON(op),
-          this.entryPoint.address,
-        ])) as string);
+        OpToJSON(op),
+        this.entryPoint.address,
+      ])) as string);
 
     builder.resetOp();
 
@@ -97,22 +97,16 @@ export class Client implements IClient {
   async sendUserOperationOnly(
     builder: IUserOperationBuilder,
     op: IUserOperation,
+    userOpHash: string,
     opts?: ISendUserOperationOpts
   ) {
     const dryRun = Boolean(opts?.dryRun);
-    // const op = await this.buildUserOperation(builder);
     opts?.onBuild?.(op);
 
-    const userOpHash = dryRun
-      ? new UserOperationMiddlewareCtx(
-          op,
-          this.entryPoint.address,
-          this.chainId
-        ).getUserOpHash()
-      : ((await this.provider.send("eth_sendUserOperation", [
-          OpToJSON(op),
-          this.entryPoint.address,
-        ])) as string);
+    await this.provider.send("eth_sendUserOperation", [
+      OpToJSON(op),
+      this.entryPoint.address,
+    ]);
 
     builder.resetOp();
 
@@ -142,5 +136,5 @@ export class Client implements IClient {
       },
     };
   }
-  
+
 }

@@ -26,7 +26,10 @@ import {
   getMerkleTree, SessionKeyData, getEncodedData
 } from "./src/kernel_util"
 
+
 async function main() {
+
+  console.time("===>total")
 
   const chainId = 6480001000;
 
@@ -68,12 +71,18 @@ async function main() {
   const sessionKeyExecutor = "0xB5B2D6ab4aF3FB1C008d1933F8D0e3049e2d78Be"
 
 
+  console.time("===>phase-0-2")
+
   console.log("Starting client...")
   const client = await Client.init(nodeRpcUrl, {
     "entryPoint": entryPoint,
     "overrideBundlerRpc": bundlerUrl,
   });
   console.log("Client initialized");
+
+  console.timeLog("===>phase-0-2")
+
+  console.time("===>phase-0-0")
 
   const provider = new BundlerJsonRpcProvider(nodeRpcUrl).setBundlerRpc(bundlerUrl);
   const userWallet = new ethers.Wallet(userPrivateKey, provider);
@@ -85,6 +94,10 @@ async function main() {
 
   const SvalidAfter = 1594068745;
   const SvalidUntil = 1923012745;
+
+  console.timeLog("===>phase-0-0")
+
+  console.time("===>phase-0-1")
 
   console.log("Kernel initializing...");
   const kernel = await Presets.Builder.Kernel.init(
@@ -108,8 +121,16 @@ async function main() {
   );
   console.log("Kernel initialized");
 
+  console.timeLog("===>phase-0-1")
+
+  console.time("===>phase-1-0")
+
   const address = kernel.getSender();
   console.log(`Kernel address: ${address}`);
+
+  console.timeLog("===>phase-1-0")
+
+  console.time("===>phase-1-1")
 
   const NFTContract = new ethers.Contract(
     nftAddress,
@@ -117,11 +138,19 @@ async function main() {
     provider
   );
 
+  console.timeLog("===>phase-1-1")
+  console.time("===>phase-1-5")
+
+
   const call = {
     to: nftAddress,
     value: 0,
     data: NFTContract.interface.encodeFunctionData("safeMint", [address])
   }
+
+  console.timeLog("===>phase-1-5")
+
+  console.time("===>phase-1-2")
 
   const sig = getFunctionSelector("safeMint(address)")
   const permissions: Permission[] = [
@@ -161,8 +190,21 @@ async function main() {
 
   const encodedData = getEncodedData(sessionKeyData);
 
+  console.timeLog("===>phase-1-2")
+
+  console.time("===>phase-1-3")
+
   const builder = kernel.execute(call)
+
+  console.timeLog("===>phase-1-3")
+
+  console.time("===>phase-1-4")
+
   const userOp = await client.buildUserOperation(builder);
+
+  console.timeLog("===>phase-1-4")
+
+  console.time("===>phase-2")
 
   const hash = new UserOperationMiddlewareCtx(
     userOp,
@@ -170,8 +212,16 @@ async function main() {
     chainId
   ).getUserOpHash()
 
+  console.timeLog("===>phase-2")
+
+  console.time("===>phase-3")
+
   const messageBytes = ethers.utils.arrayify(hash);
   const sessionKeySigData = await sessionKeyWallet.signMessage(messageBytes);
+
+  console.timeLog("===>phase-3")
+
+  console.time("===>phase-4-1")
 
   const sessionKeySig = concatHex([
     sessionKeyAddr as Hex,
@@ -187,7 +237,6 @@ async function main() {
   ])
   const enableSigHex = callData.slice(2, 2 + 8);
   const enableSig = Buffer.from(enableSigHex, 'hex');
-
 
   const domain = {
     name: "Kernel",
@@ -216,8 +265,17 @@ async function main() {
     executor: sessionKeyExecutor as Address,
     enableData: enableData,
   }
+
+  console.timeLog("===>phase-4-1")
+
+  console.time("===>phase-4-2")
+
   const enableSignature = await userWallet._signTypedData(domain, types, message);
   console.log("enableSignature:", enableSignature)
+  console.timeLog("===>phase-4-2")
+
+  console.time("===>phase-4-3")
+
   const enableSigLength = enableSignature.length / 2 - 1;
 
   const signature = concatHex([
@@ -233,19 +291,32 @@ async function main() {
     sessionKeySig as Hex,
   ]);
 
+  console.timeLog("===>phase-4-3")
+
+  console.time("===>phase-5")
+
   userOp.signature = signature;
   const res = await client.sendUserOperationOnly(
     builder,
     userOp,
+    hash,
     {
       onBuild: (op) => console.log("Signed UserOperation:", op),
       dryRun: false
     }
   );
   console.log(`UserOpHash: ${res.userOpHash}`);
+  console.timeLog("===>phase-5")
+
+  console.time("===>phase-6")
 
   const receipt = await res.wait();
   console.log(`receipt: ${receipt?.transactionHash}`);
+
+  console.timeLog("===>phase-6")
+
+  console.timeEnd("===>total")
+
 }
 
 main()
