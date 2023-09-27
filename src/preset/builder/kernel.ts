@@ -122,8 +122,8 @@ export class Kernel extends UserOperationBuilder {
       const addr = error?.errorArgs?.sender;
       if (!addr) throw error;
 
-      const chain = await instance.provider.getNetwork().then((n) => n.chainId);
-      const ms = Safe.MultiSend[chain.toString()];
+      // const chain = await instance.provider.getNetwork().then((n) => n.chainId);
+      // const ms = Safe.MultiSend[chain.toString()];
       // if (!ms)
       //   throw new Error(
       //     `Multisend contract not deployed on network: ${chain.toString()}`
@@ -143,10 +143,6 @@ export class Kernel extends UserOperationBuilder {
         ]),
       })
       .useMiddleware(instance.resolveAccount)
-
-    if (opts?.paymasterMiddleware) {
-      base = base.useMiddleware(opts.paymasterMiddleware)
-    }
 
     base = base.useMiddleware(getGasPrice(instance.provider))
       .useMiddleware(estimateUserOperationGas(instance.provider))

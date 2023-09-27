@@ -110,13 +110,6 @@ async function main() {
       "overrideBundlerRpc": bundlerUrl,
       "kernelImpl": kernelImpl,
       "ECDSAValidator": ECDSAValidator,
-      "paymasterMiddleware": verifyingPaymaster(
-        {
-          rpcUrl: paymasterUrl,
-          validAfter: validUntil,
-          validUntil: SvalidUntil,
-        }
-      )
     }
   );
   console.log("Kernel initialized");
@@ -200,7 +193,15 @@ async function main() {
 
   console.time("===>phase-1-4")
 
-  const userOp = await client.buildUserOperation(builder);
+  const userOp = await client.buildUserOperation(builder,
+    verifyingPaymaster(
+      {
+        rpcUrl: paymasterUrl,
+        validAfter: validUntil,
+        validUntil: SvalidUntil,
+      }
+    )
+  );
 
   console.timeLog("===>phase-1-4")
 
@@ -305,7 +306,7 @@ async function main() {
       dryRun: false
     }
   );
-  console.log(`UserOpHash: ${res.userOpHash}`);
+  // console.log(`UserOpHash: ${res.userOpHash}`);
   console.timeLog("===>phase-5")
 
   console.time("===>phase-6")

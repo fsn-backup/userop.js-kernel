@@ -57,7 +57,8 @@ export interface IUserOperationBuilder {
   // It will run through your entire middleware stack in the process.
   buildOp: (
     entryPoint: string,
-    chainId: BigNumberish
+    chainId: BigNumberish,
+    paymasterFn?: UserOperationMiddlewareFn
   ) => Promise<IUserOperation>;
 
   // Will reset all fields back to default value.
@@ -72,7 +73,6 @@ export interface IUserOperationMiddlewareCtx {
   op: IUserOperation;
   entryPoint: string;
   chainId: BigNumberish;
-  first: boolean;
 
   // A userOpHash is a unique hash of op + entryPoint + chainId.
   getUserOpHash: () => string;

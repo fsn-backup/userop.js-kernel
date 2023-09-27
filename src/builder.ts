@@ -5,6 +5,7 @@ import {
   IUserOperation,
   IUserOperationBuilder,
   UserOperationMiddlewareFn,
+  IPaymasterOpts
 } from "./types";
 
 export const DEFAULT_VERIFICATION_GAS_LIMIT = ethers.BigNumber.from(70000);
@@ -197,15 +198,22 @@ export class UserOperationBuilder implements IUserOperationBuilder {
     return this;
   }
 
-  async buildOp(entryPoint: string, chainId: BigNumberish) {
+  async buildOp(entryPoint: string, chainId: BigNumberish, paymasterFn?: UserOperationMiddlewareFn) {
     const ctx = new UserOperationMiddlewareCtx(
       this.currOp,
       entryPoint,
       chainId
     );
 
+    let index = 0
     for (const fn of this.middlewareStack) {
+      if (index == 2) {
+        if (paymasterFn != undefined) {
+          paymasterFn(ctx)
+        }
+      }
       await fn(ctx);
+      index++;
     }
 
     this.setPartial(ctx.op);

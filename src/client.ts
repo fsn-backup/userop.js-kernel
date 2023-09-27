@@ -5,12 +5,14 @@ import {
   ISendUserOperationOpts,
   IClientOpts,
   IUserOperation,
+  UserOperationMiddlewareFn
 } from "./types";
 import { EntryPoint, EntryPoint__factory } from "./typechain";
 import { OpToJSON } from "./utils";
 import { UserOperationMiddlewareCtx } from "./context";
 import { ERC4337 } from "./constants";
 import { BundlerJsonRpcProvider } from "./provider";
+
 
 export class Client implements IClient {
   private provider: ethers.providers.JsonRpcProvider;
@@ -42,8 +44,8 @@ export class Client implements IClient {
     return instance;
   }
 
-  async buildUserOperation(builder: IUserOperationBuilder) {
-    return builder.buildOp(this.entryPoint.address, this.chainId);
+  async buildUserOperation(builder: IUserOperationBuilder, paymasterFn?: UserOperationMiddlewareFn) {
+    return builder.buildOp(this.entryPoint.address, this.chainId, paymasterFn);
   }
 
   async sendUserOperation(
@@ -111,7 +113,6 @@ export class Client implements IClient {
     builder.resetOp();
 
     return {
-      userOpHash,
       wait: async () => {
         if (dryRun) {
           return null;
